@@ -1,0 +1,32 @@
+-- Write a query that calculates the difference between the highest salaries 
+found in the marketing and engineering departments. Output just the absolute difference in salaries.
+
+
+## 1. SQL Solution
+SELECT ABS(max(max_salary) - min(max_salary))
+FROM(
+    SELECT
+        max(e.salary) AS max_salary, d.department
+    FROM  db_employee e
+    LEFT JOIN db_dept d
+    ON e.department_id = d.id
+    WHERE 
+        d.department = 'engineering' OR 
+        d.department = 'marketing'
+    GROUP BY e.department_id, d.department) t
+
+##########################################################
+
+## 2. R Solution
+# Import your libraries
+library(dplyr)
+
+# Start writing code
+result <- db_employee %>%
+  left_join(db_dept, by = c("department_id" = "id")) %>%
+  filter(department %in% c("marketing","engineering")) %>%
+  group_by(department) %>%
+  summarize(m_salary = max(salary))
+
+# Calculate the absolute difference
+abs_difference <- abs(result$m_salary[1] - result$m_salary[2])
