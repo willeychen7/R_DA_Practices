@@ -1,0 +1,43 @@
+You have been asked to find the job titles of the highest-paid employees.
+Your output should include the highest-paid title or multiple titles with the same salary.
+
+Table 1: worker
++-------------------------+
+|   worker_id  |    int   |
+|   first_name |  varchar |
+|   last_name  |  varchar |
+|    salary    |    int   |
+| joining_date | datetime |
+| department   |  varchar |
++-------------------------+
+
+Table 2: title
++---------------------------+
+|  worker_ref_id |    int   |
+|  worker_title  |  varchar |
+|  affected_from | datetime |
++---------------------------+
+
+
+## 1. SQL Solution
+SELECT
+    t.worker_title
+FROM title AS t 
+LEFT JOIN worker AS w
+    ON t.worker_ref_id = w.worker_id 
+WHERE
+    salary = (SELECT MAX(salary) FROM worker)
+    
+######################################
+
+## 2. R Solution
+# Import your libraries
+library(dplyr)
+
+# Start writing code
+result <- worker %>%
+    left_join(title, by=c("worker_id"="worker_ref_id")) %>%
+    group_by(worker_title) %>%
+    summarize(max_salary = max(salary)) %>%
+    filter(max_salary == max(max_salary)) %>%
+    select(worker_title)
