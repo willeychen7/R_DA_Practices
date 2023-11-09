@@ -1,0 +1,52 @@
+-- Calculate each user's average session time. A session is defined as 
+the time difference between a page_load and page_exit. 
+For simplicity, assume a user has only 1 session per day and if there are 
+multiple of the same events on that day, consider only the latest page_load 
+and earliest page_exit, with an obvious restriction that load time event 
+should happen before exit time event . Output the user_id and their average session time.
+
+Table facebook_web_log
++-----------------------+
+|  user_id  |    int    |
+| timestamp |  datetime |
+|  action   |  varchar  |
++-----------------------+
+
+## *1. SQL Solution
+WITH page_load_exit AS(SELECT
+    user_id,
+    timestamp::date,
+    max(CASE WHEN action='page_load' THEN timestamp END) as time_load,
+    max(CASE WHEN action='page_exit' THEN timestamp END) as time_exit
+FROM facebook_web_log
+GROUP BY user_id, timestamp::date)
+
+SELECT 
+    user_id,
+    AVG(time_exit - time_load) AS session
+FROM page_load_exit
+GROUP BY user_id
+HAVING AVG(time_exit - time_load) IS NOT NULL
+
+#########################################################################
+## 2. R Solution
+# Import your libraries
+library(dplyr)
+
+# Start writing code
+page_load <- facebook_web_log %>%
+    filter(action=="page_load") %>%
+    group_by(user_id, date = format(timestamp, format="%Y-%m-%d")) %>%
+    summarize(time_load=max(timestamp))  
+    
+page_exit <- facebook_web_log %>%
+    filter(action=="page_exit") %>%
+    group_by(user_id, date = format(timestamp, format="%Y-%m-%d")) %>%
+    summarize(time_exit=max(timestamp))  
+    
+result <- page_load %>%
+    left_join(page_exit,by=c("user_id", "date")) %>%
+    filter(time_exit>time_load) %>%
+    mutate(session = (time_exit- time_load)) %>%
+    group_by(user_id) %>%
+    summarize(session = mean(session))
