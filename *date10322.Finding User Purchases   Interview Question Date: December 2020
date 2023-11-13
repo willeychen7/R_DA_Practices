@@ -1,0 +1,50 @@
+-- Write a query that'll identify returning active users. 
+A returning active user is a user that has made a second purchase within 
+7 days of any other of their purchases. Output a list of user_ids of these returning active users.
+
+amazon_transactions
++------------------------+
+|     id     |    int    |
+|   user_id  |    int    |
+|    item    |  varchar  |
+| created_at | datetime  |
+|  revenue   | int       |
++------------------------+
+
+################################################################################
+## 1A. SQL Solution (CTE)
+WITH CTE AS(
+SELECT 
+    user_id,
+    created_at,
+    LAG(created_at,1) OVER(PARTITION BY user_id ORDER BY created_at ASC) as prev_date
+FROM amazon_transactions)
+
+SELECT
+    distinct user_id
+FROM CTE
+WHERE created_at-prev_date<=7
+
+
+## 1B. SQL Solution (JOIN)
+SELECT DISTINCT(a1.user_id)
+FROM amazon_transactions a1
+JOIN amazon_transactions a2 ON a1.user_id=a2.user_id
+AND a1.id <> a2.id
+AND a2.created_at::date-a1.created_at::date BETWEEN 0 AND 7
+ORDER BY a1.user_id
+
+
+################################################################################
+## 2. R Solution
+# Import your libraries
+library(dplyr)
+
+# Start writing code
+amazon_transactions %>%
+    group_by(user_id) %>%
+    arrange(user_id,created_at) %>%
+    mutate(prev_date = lag(created_at, order_by=created_at)) %>%
+    mutate(datediff = difftime(created_at, prev_date, units='days')) %>%
+    filter(datediff <=7) %>%
+    distinct(user_id)
