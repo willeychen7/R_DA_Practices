@@ -1,0 +1,38 @@
+-- Find the last time each bike was in use. Output both the bike number and the 
+date-timestamp of the bike's last use (i.e., the date-time the bike was returned). 
+Order the results by bikes that were most recently used.
+
+Table dc_bikeshare_q1_2012
++------------------------------+
+|     duration     |  varchar  |
+| duration_seconds |    int    |
+|    start_time    |  datetime |
+|  start_station   |  varchar  |
+|  start_terminal  |    int    |
+|     end_time     |  datetime |
+|   end_station    |  varchar  |
+|   end_terminal   |    int    |
+|   bike_number    |  varchar  |
+|    rider_type    |  varchar  |
+|         id       |    int    |
++------------------------------+
+
+## 1. SQL Solution
+SELECT
+    bike_number,
+    max(end_time) as end_time
+FROM dc_bikeshare_q1_2012
+GROUP BY bike_number;
+
+######################################################
+## 2. R Solution
+# Import your libraries
+library(dplyr)
+
+# Start writing code
+dc_bikeshare_q1_2012 %>%
+    group_by(bike_number) %>%
+    mutate(end_time = max(end_time)) %>%
+    select(bike_number, end_time) %>%
+    distinct() %>%
+    arrange(desc(end_time))
