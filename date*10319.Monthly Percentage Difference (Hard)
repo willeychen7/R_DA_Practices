@@ -1,0 +1,41 @@
+-- Given a table of purchases by date, calculate the month-over-month percentage 
+change in revenue. The output should include the year-month date (YYYY-MM) and 
+percentage change, rounded to the 2nd decimal point, and sorted from the beginning 
+of the year to the end of the year. The percentage change column will be populated from the 
+2nd month forward and can be calculated as ((this month's revenue - last month's revenue) / last month's revenue)*100.
+
+sf_transactions
++------------------------+
+|      id     |    int   |
+|  created_at | datetime |
+|    value    |    int   |
+| purchase_id |    int   |
++------------------------+
+###########################################################################################
+## 1. SQL Solution
+WITH CTE AS(SELECT
+    TO_CHAR(created_at,'YYYY-MM') as date,
+    SUM(value) AS revenue
+FROM sf_transactions
+GROUP BY date)
+
+SELECT 
+   date, 
+   ROUND(revenue / LAG(revenue,1) OVER(ORDER BY date),2) AS rev_diff_pct
+FROM CTE
+
+###########################################################################################
+## 2. R.Solution (LAG)
+# Import your libraries
+library(dplyr)
+library(lubridate)
+# Start writing code
+sf_transactions %>%
+    mutate(ym = format(created_at,format="%Y-%m")) %>%
+    group_by(ym) %>%
+    summarize(revenue = sum(value)) %>%
+    mutate(pct = round((revenue-lag(revenue))/lag(revenue)*100,2)) %>%
+    select(ym,pct) %>%
+    arrange(ym)
+
+
