@@ -1,0 +1,57 @@
+-- You are given a table of product launches by company by year. 
+Write a query to count the net difference between the number of products 
+companies launched in 2020 with the number of products companies launched 
+in the previous year. Output the name of the companies and a net difference 
+of net products released for 2020 compared to the previous year.
+
+##############################################################################
+## 1a. SQL Solution
+WITH num20 AS(SELECT 
+    company_name,
+    COUNT(product_name) as total20
+FROM car_launches
+WHERE year = 2020
+GROUP BY company_name),
+
+num19 AS(SELECT 
+    company_name,
+    COUNT(product_name) as total19
+FROM car_launches
+WHERE year = 2019
+GROUP BY company_name)
+
+SELECT 
+    num20.company_name,
+    total20-total19 as diff
+FROM num20
+JOIN num19 ON num20.company_name = num19.company_name
+
+## 1b. SQL Solution (CASE WHEN, better answer) **
+select 
+company_name,
+COUNT(CASE WHEN year=2020  then 1 ELSE NULL END)-count(CASE WHEN year=2019 THEN 1 ELSE NULL END) AS net_diff
+FROM car_launches
+GROUP BY company_name
+
+##############################################################################
+## 2. R Solution
+# Import your libraries
+library(dplyr)
+
+# Start writing code
+result19  =
+car_launches %>%
+    filter(year==2019) %>%
+    group_by(company_name)%>%
+    summarize(num=n())
+    
+result20  =
+car_launches %>%
+    filter(year==2020) %>%
+    group_by(company_name)%>%
+    summarize(num=n())
+
+result20 %>%
+    left_join(result19,by="company_name") %>%
+    group_by(company_name) %>%
+    summarize(diff = num.x-num.y)
