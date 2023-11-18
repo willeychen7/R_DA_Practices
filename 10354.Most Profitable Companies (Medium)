@@ -36,3 +36,18 @@ forbes_global_2010_2014 %>%
     arrange(desc(profits)) %>%
     head(3)
 
+######################################################
+## 3. Python Solution
+# Import your libraries
+import pandas as pd
+
+# Start writing code
+forbes_global_2010_2014.groupby('company')['profits'].sum().
+    reset_index().sort_values(by='profits',ascending=False).head(3)
+
+
+
+
+
+
+
